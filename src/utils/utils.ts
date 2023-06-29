@@ -72,8 +72,8 @@ export const PITCH_IDXS = {
 		space: ['e5', 'c5', 'a4', 'f4']
 	},
 	bass: {
-		line: ['a3', 'f3', 'd2', 'b2', 'g2'],
-		space: []
+		line: ['a3', 'f3', 'd3', 'b2', 'g2'],
+		space: ['g3', 'e3', 'c3', 'a2']
 	}
 } as const;
 
@@ -84,13 +84,13 @@ export enum SelectTarget {
 }
 
 export function pitchToYOffset(pitch: ReducedPitch, reference: ReducedPitch): number {
-	const bIdx = PITCH_ORDER.indexOf(reference);
+	const refIdx = PITCH_ORDER.indexOf(reference);
 
-	return (PITCH_ORDER.indexOf(pitch) - bIdx) * 5;
+	return (PITCH_ORDER.indexOf(pitch) - refIdx) * 5;
 }
 
 export function outOfBounds(pitch: ReducedPitch, clef: Clef): boolean {
-	const offset = pitchToYOffset(pitch, clef === 'treble' ? 'b4' : 'd2');
+	const offset = pitchToYOffset(pitch, clef === 'treble' ? 'b4' : 'd3');
 
 	return offset > 25 || offset < -25;
 }
@@ -100,7 +100,7 @@ export function idxToPitch(idx: number, type: NoteType, clef: Clef): ReducedPitc
 }
 
 export function noteType(pitch: ReducedPitch, clef: Clef): NoteType {
-	return clef === 'treble' ? ((PITCH_ORDER.indexOf(pitch) - PITCH_ORDER.indexOf('b4')) % 2 === 0 ? 'line' : 'space') : 'space'; // TODO: account for bass clef
+	return (PITCH_ORDER.indexOf(pitch) - PITCH_ORDER.indexOf(clef === 'treble' ? 'b4' : 'd3')) % 2 === 0 ? 'line' : 'space';
 }
 
 export function increment(pitch: Pitches): Pitches;

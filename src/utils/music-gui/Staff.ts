@@ -16,7 +16,7 @@ export class Staff extends Entity {
 	}
 
 	public render(renderEngine: RenderEngine, metadata: Metadata): void {
-		const center = new Point(50, renderEngine.height / 2 - 70 - this.idx * 80);
+		const center = new Point(50, renderEngine.height / 2 - 70 - this.idx * 150);
 
 		for (let i = 1; i <= 3; i++) {
 			renderEngine.line(center.add(new Point(-450, 20 - 10 * i)), center.add(new Point(450, 20 - 10 * i)));
@@ -25,7 +25,9 @@ export class Staff extends Entity {
 		if (this.idx === 0) {
 			renderEngine.rect(center, 900, 40);
 
-			renderEngine.text(center.add(new Point(-435, -6)), this.state.clef === 'treble' ? '&' : '?', { font: '36px music' });
+			renderEngine.text(center.add(new Point(-435, this.state.clef === 'treble' ? -6 : 15)), this.state.clef === 'treble' ? '&' : '?', {
+				font: '36px music'
+			});
 			renderEngine.text(center.add(new Point(-415, 14)), this.state.time[0].toString(), { font: '40px music' });
 			renderEngine.text(center.add(new Point(-415, -6)), this.state.time[1].toString(), { font: '40px music' });
 
@@ -35,7 +37,9 @@ export class Staff extends Entity {
 		} else {
 			renderEngine.rect(center, 900, 40);
 
-			renderEngine.text(center.add(new Point(-435, -6)), this.state.clef === 'treble' ? '&' : '?', { font: '36px music' });
+			renderEngine.text(center.add(new Point(-435, this.state.clef === 'treble' ? -6 : 15)), this.state.clef === 'treble' ? '&' : '?', {
+				font: '36px music'
+			});
 
 			this._renderKey();
 
@@ -80,13 +84,16 @@ export class Staff extends Entity {
 	private _renderKey(): void {
 		if (this.state.key !== 'cM' && this.state.key !== 'am') {
 			const { modifiedPitches, modifier } = getKeyData(this.state.key);
-			const center = new Point(50, this.state.renderEngine.height / 2 - 70 - this.idx * 80);
+			const center = new Point(50, this.state.renderEngine.height / 2 - 70 - this.idx * 150);
 
 			modifiedPitches.forEach((pitch, i) => {
 				const pos = center.add(
 					new Point(
 						(this.idx === 0 ? -400 : -410) + i * 10,
-						pitchToYOffset(`${pitch}${pitch === 'a' || pitch === 'b' ? 4 : 5}`, this.state.clef === 'treble' ? 'b4' : 'd2') + 4.5
+						pitchToYOffset(
+							`${pitch}${this.state.clef === 'treble' ? (pitch === 'a' || pitch === 'b' ? 4 : 5) : ['a', 'b', 'g'].includes(pitch) ? 2 : 3}`,
+							this.state.clef === 'treble' ? 'b4' : 'd3'
+						) + 4.5
 					)
 				);
 

@@ -18,12 +18,14 @@ export interface Note {
 	value: NoteValues;
 	slurred: boolean;
 	accidental: '#' | 'b' | null;
+	rest: boolean;
 }
 
 export interface FullNote {
 	pitch: FullPitch;
 	value: NoteValues;
 	slurred: boolean;
+	rest: boolean;
 }
 
 export interface KeyData {

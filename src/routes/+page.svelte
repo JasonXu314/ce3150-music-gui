@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { hotkey } from '@svelteuidev/composables';
-	import { Button, Group, NativeSelect } from '@svelteuidev/core';
+	import { Button, Group, NativeSelect, NumberInput } from '@svelteuidev/core';
 	import { onMount } from 'svelte';
 	import { Engine } from '../utils/engine';
-	import type { MusicKey, NoteValues } from '../utils/music';
+	import type { Clef, MusicKey, NoteValues } from '../utils/music';
 	import { Staff } from '../utils/music-gui/Staff';
 
 	let canvas: HTMLCanvasElement | undefined,
@@ -11,7 +11,11 @@
 		staffIdx = 0,
 		noteValue = 'q',
 		dotted = false,
-		key: MusicKey = 'cM';
+		key: MusicKey = 'cM',
+		bpm: number = 60,
+		timeTop: number = 4,
+		timeBottom: number = 4,
+		clef: Clef = 'treble';
 
 	onMount(() => {
 		if (canvas) {
@@ -33,6 +37,9 @@
 	}
 
 	$: engine?.setKey(key);
+	$: engine?.setTimeN(timeTop);
+	$: engine?.setTimeD(timeBottom);
+	$: engine?.setClef(clef);
 </script>
 
 <Group
@@ -44,7 +51,9 @@
 				['ArrowDown', () => engine?.decrementPitch()],
 				['Escape', () => engine?.cancel()],
 				['Delete', () => engine?.del()],
-				['Backspace', () => engine?.del()]
+				['Backspace', () => engine?.del()],
+				['l', () => engine?.add(new Staff(staffIdx++, engine.globalState), 0)],
+				['b', () => engine?.addBar()]
 			]
 		]
 	]}
@@ -58,6 +67,7 @@
 				hotkey,
 				[
 					['d', () => (dotted = true)],
+					['r', () => engine?.rest()],
 					['w', () => addNote('w')],
 					['h', () => addNote('h')],
 					['q', () => addNote('q')],
@@ -107,6 +117,16 @@
 		]}
 		bind:value={key}
 	/>
-	<Button on:click={() => engine?.compile()}>Compile</Button>
+	<NativeSelect
+		data={[
+			{ label: 'Treble Clef', value: 'treble' },
+			{ label: 'Bass Clef', value: 'bass' }
+		]}
+		bind:value={clef}
+	/>
+	<NumberInput label="BPM" bind:value={bpm} />
+	<NumberInput label="Time Top" bind:value={timeTop} />
+	<NumberInput label="Time Bottom" bind:value={timeBottom} />
+	<Button on:click={() => engine?.compile(bpm)}>Compile</Button>
 </Group>
-<canvas bind:this={canvas} height={2400} width={1200} />
+<canvas bind:this={canvas} height={16000} width={1200} />

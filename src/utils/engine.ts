@@ -1,6 +1,6 @@
 import { GlobalStateModule } from './GlobalState';
 import type { Entity } from './entity';
-import { makeNoteResolver, numericalValue, type MusicKey, type Note, type NoteValues } from './music';
+import { makeNoteResolver, numericalValue, type Clef, type MusicKey, type Note, type NoteValues } from './music';
 import type { Staff } from './music-gui/Staff';
 import { StaffLine } from './music-gui/StaffLine';
 import { PhantomNote, StaffNote } from './music-gui/StaffNote';
@@ -120,12 +120,18 @@ export class Engine {
 			});
 
 			this.on('entityClicked', (entity, meta) => {
-				if (meta.button === MouseButton.LEFT && this._phantomNote && (entity instanceof StaffLine || entity instanceof StaffSpace)) {
+				if (
+					meta.button === MouseButton.LEFT &&
+					this._phantomNote &&
+					(entity instanceof StaffLine || entity instanceof StaffSpace) &&
+					entity.bar === this.globalState.augmentedBar
+				) {
 					const note = entity.bar.addNote({
-						pitch: idxToPitch(entity.idx, entity instanceof StaffLine ? 'line' : 'space', 'treble'),
+						pitch: idxToPitch(entity.idx, entity instanceof StaffLine ? 'line' : 'space', this.globalState.clef),
 						value: this._phantomNote.value,
 						slurred: false,
-						accidental: null
+						accidental: null,
+						rest: this._phantomNote.rest
 					});
 					this._phantomNote = null;
 					this.globalState.augmentedBar = null;
@@ -189,12 +195,18 @@ export class Engine {
 		if (!this._phantomNote) {
 			for (const staff of this.layers[0] as Staff[]) {
 				for (const bar of staff.bars) {
-					if (bar.calculateNoteValue() <= this.globalState.time[1] - numericalValue(value, this.globalState.time[1])) {
-						this._phantomNote = new PhantomNote(value, null, this.globalState);
+					if (bar.calculateNoteValue() <= this.globalState.time[0] - numericalValue(value, this.globalState.time[1])) {
+						this._phantomNote = new PhantomNote(value, null, false, this.globalState);
 						return;
 					}
 				}
 			}
+		}
+	}
+
+	public rest(): void {
+		if (this._phantomNote && !this._phantomNote.rest) {
+			this._phantomNote.rest = true;
 		}
 	}
 
@@ -221,7 +233,19 @@ export class Engine {
 		this.globalState.key = key;
 	}
 
-	public compile(): void {
+	public setTimeN(timeN: number): void {
+		this.globalState.timeN = timeN;
+	}
+
+	public setTimeD(timeD: number): void {
+		this.globalState.timeD = timeD;
+	}
+
+	public setClef(clef: Clef): void {
+		this.globalState.clef = clef;
+	}
+
+	public compile(bpm: number): void {
 		const notes = (this.layers[0] as Staff[]).reduce<Note[]>(
 			(arr, staff) => [...arr, ...staff.bars.reduce<Note[]>((arr, bar) => [...arr, ...bar.notes], [])],
 			[]
@@ -229,7 +253,16 @@ export class Engine {
 
 		const fullNotes = notes.map(makeNoteResolver(this.globalState.key));
 
-		console.log(fullNotes.map((note) => `${note.pitch} ${note.value} ${note.slurred ? 't' : 'f'}`).join('\n'));
+		const piece = `${bpm}\n${this.globalState.time[0]} ${this.globalState.time[1]}\n${fullNotes
+			.map((note) => `${note.rest ? 'r' : note.pitch} ${note.value} ${note.slurred ? 't' : 'f'}`)
+			.join('\n')}`;
+
+		const file = new File([piece], 'piece.txt', { type: 'text/plain' });
+		const url = URL.createObjectURL(file);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = 'piece.txt';
+		a.click();
 	}
 
 	public del(): void {
@@ -253,7 +286,7 @@ export class Engine {
 			if (this._phantomNote && (this._hoveredEntity instanceof StaffLine || this._hoveredEntity instanceof StaffSpace)) {
 				if (
 					this._hoveredEntity.bar.calculateNoteValue() <=
-					this.globalState.time[1] - numericalValue(this._phantomNote.value, this.globalState.time[1])
+					this.globalState.time[0] - numericalValue(this._phantomNote.value, this.globalState.time[1])
 				) {
 					this._phantomNote.staffPosition = this._hoveredEntity;
 					this.globalState.augmentedBar = this._hoveredEntity.bar;

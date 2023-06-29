@@ -18,5 +18,17 @@ export class GlobalStateModule {
 	public get clef(): Clef {
 		return this._clef;
 	}
+
+	public set clef(clef: Clef) {
+		this._clef = clef;
+	}
+
+	public set timeN(num: number) {
+		this._timeN = num;
+	}
+
+	public set timeD(num: number) {
+		this._timeD = num;
+	}
 }
 

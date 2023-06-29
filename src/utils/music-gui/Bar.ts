@@ -69,14 +69,14 @@ export class Bar extends Entity {
 			? {
 					center: new Point(
 						-this.state.renderEngine.width / 2 + 200 + leftMargin / 2 + 450,
-						this.state.renderEngine.height / 2 - 70 - 80 * this.staff.idx
+						this.state.renderEngine.height / 2 - 70 - 150 * this.staff.idx
 					),
 					width: 900 - leftMargin
 			  }
 			: {
 					center: new Point(
 						-this.state.renderEngine.width / 2 + 200 + leftMargin + width / 2,
-						this.state.renderEngine.height / 2 - 70 - 80 * this.staff.idx
+						this.state.renderEngine.height / 2 - 70 - 150 * this.staff.idx
 					),
 					width
 			  };
@@ -87,7 +87,7 @@ export class Bar extends Entity {
 	}
 
 	public addNote(note: Note): StaffNote {
-		const newNote = new StaffNote(this, this._notes.length, note, this.state);
+		const newNote = new StaffNote(this, this._notes.length, note, note.rest, this.state);
 		this._notes.push(newNote);
 		return newNote;
 	}
